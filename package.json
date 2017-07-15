@@ -1,20 +1,23 @@
 {
   "scripts": {
-   "precommit": "lint-staged"
- },
- "lint-staged": {
-   "*.js": [
-     "prettier --write",
-     "git add"
-   ]
- },
+    "precommit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write",
+      "git add"
+    ]
+  },
   "dependencies": {
     "acorn": "^5.1.1",
     "graphlib": "^2.1.1"
   },
   "devDependencies": {
+    "eslint": "^4.2.0",
+    "eslint-config-prettier": "^2.3.0",
+    "eslint-plugin-prettier": "^2.1.2",
     "husky": "^0.14.3",
     "lint-staged": "^4.0.1",
-    "prettier": "^1.5.2"
+    "prettier": "^1.5.3"
   }
 }
