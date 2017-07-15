@@ -3,7 +3,7 @@ const { promisify } = require('util');
 const fs = require('fs');
 const readFileAsync = promisify(fs.readFile);
 
-const GulpGraph = require('./lib/gulpgraph');
+const GulpGraph = require('./lib/gulp-graph');
 
 const filePath = process.argv[2];
 
@@ -13,7 +13,10 @@ async function main() {
 
         const testGG = new GulpGraph(gulpfile);
 
-        // console.log(testGG.dependencies);
+        // console.log(testGG.GRAPH.nodes());
+        // console.log(testGG.GRAPH.edges());
+
+        console.log(testGG.toJSON());
     }
     catch (err) {
         console.log('ERROR:', err);
