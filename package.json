@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "acorn": "^5.1.1",
-    "graphlib": "^2.1.1"
+    "graphlib": "^2.1.1",
+    "graphlib-dot": "^0.6.2"
   },
   "devDependencies": {
     "eslint": "^4.2.0",

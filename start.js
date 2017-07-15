@@ -16,7 +16,7 @@ async function main() {
         // console.log(testGG.GRAPH.nodes());
         // console.log(testGG.GRAPH.edges());
 
-        console.log(testGG.toJSON());
+        console.log(testGG.toDOT());
     }
     catch (err) {
         console.log('ERROR:', err);
