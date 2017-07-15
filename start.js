@@ -9,7 +9,7 @@ const filePath = process.argv[2];
 
 async function main() {
     try {
-        const gulpfile = await readFileAsync('./classic-gulpfile-gist.js', { encoding: 'utf8' });
+        const gulpfile = await readFileAsync('./test-files/gist-2.js', { encoding: 'utf8' });
 
         const testGG = new GulpGraph(gulpfile);
 
