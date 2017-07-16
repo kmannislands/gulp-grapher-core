@@ -2,8 +2,8 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <base data-ice="baseUrl">
-  <title data-ice="title">API Document</title>
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">lib/node-types.js | API Document</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -44,38 +44,17 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h1 id="gulp-grapher-core">Gulp Grapher Core</h1>
-<p><a href="http://forthebadge.com"><img src="http://forthebadge.com/images/badges/fuck-it-ship-it.svg" alt="forthebadge"></a></p>
-<p>The Gulp Graph object creates a graph interface to interact with gulpfiles to achieve things like:</p>
-<ul>
-<li>Retrieve a graph representation of tasks, and their dependencies</li>
-<li>Parse arbitrary gulpfiles from js strings to graphs representing the flow of data that occurs in the task</li>
-</ul>
-<p>Some WIP Examples:</p>
-<ul>
-<li>Retrieve a graph representation on task&apos;s subroutines</li>
-<li>Add tasks while modifying the internal gulpfile js string</li>
-<li>Modify Tasks&apos;s subroutines and their parameters</li>
-</ul>
-<h3 id="tech">Tech</h3>
-<p>The gulp grapher core depends on two main open source dependencies:</p>
-<ul>
-<li><a href="https://github.com/ternjs/acorn">Acorn</a> - A small, fast, JavaScript-based JavaScript parser</li>
-<li><a href="https://github.com/cpettitt/graphlib">Graphlib</a> - A directed multi-graph library for JavaScript</li>
-</ul>
-<h3 id="development">Development</h3>
-<p>Gulp Grapher Core requires <a href="https://nodejs.org/">Node.js</a> v8+ to run locally.</p>
-<p>Install the dependencies and devDependencies and start hacking away.</p>
-<p><a href="https://github.com/prettier/prettier">Prettier</a> is used along with husky and lint-staged (see prettier&apos;s README) to format js locally on a commit hook.</p>
-<p><a href="https://yarnpkg.com/en/docs/migrating-from-npm">Yarn</a> is recommended for stable package management.</p>
-<pre><code class="lang-sh"><code class="source-code prettyprint">$ yarn
-$ node start.js</code>
+<div class="content" data-ice="content"><h1 data-ice="title">lib/node-types.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">// jshint esversion : 6
+const NODE_TYPES = {
+  GULPNODE: &quot;GulpNode&quot;,
+  PACKAGE: &quot;Package&quot;,
+  TASK: &quot;Task&quot;
+};
+
+module.exports = NODE_TYPES;
 </code></pre>
-<h3 id="todos">Todos</h3>
-<p>See Project&apos;s <a href="https://waffle.io/kmannislands/gulp-grapher-core">Waffle</a></p>
-<h2 id="license">License</h2>
-<p>MIT</p>
-</div>
+
 </div>
 
 <footer class="footer">

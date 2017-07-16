@@ -39,6 +39,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-interface">I</span><span data-ice="name"><span><a href="class/lib/interface.js~JointGraph.html">JointGraph</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-JointGraph">JointGraph</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GulpNode">GulpNode</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-NODE_TYPES">NODE_TYPES</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -48,7 +49,9 @@
 const graphlib = require(&quot;graphlib&quot;),
   Graph = graphlib.Graph;
 
-const dot = require(&apos;graphlib-dot&apos;);
+const dot = require(&quot;graphlib-dot&quot;);
+
+const NODE_TYPES = require(&quot;./node-types.js&quot;);
 
 /**
 * Helper function for conveniently setting object properties with
@@ -161,8 +164,8 @@ class GulpNode {
  * @param {number} param.name - name (required)
  */
   constructor(init) {
-    this.NAME = obj.name;
-    this.TYPE = &apos;GulpNode&apos;;
+    this.NAME = init.name;
+    this.TYPE = NODE_TYPES.GULPNODE;
   }
 
   /**
@@ -191,7 +194,6 @@ class GulpNode {
   get label() {
     return `${this.type.toLowerCase()}:${this.name.toLowerCase()}`;
   }
-
 }
 
 module.exports = { GulpNode, JointGraph };

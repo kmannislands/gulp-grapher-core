@@ -39,6 +39,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-interface">I</span><span data-ice="name"><span><a href="class/lib/interface.js~JointGraph.html">JointGraph</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-JointGraph">JointGraph</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GulpNode">GulpNode</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-NODE_TYPES">NODE_TYPES</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -49,19 +50,19 @@ const acorn = require(&quot;acorn&quot;);
 
 const walk = require(&quot;acorn/dist/walk&quot;);
 
-const { JointGraph } = require(&apos;./interface.js&apos;);
+const { JointGraph } = require(&quot;./interface.js&quot;);
 
-const { TaskNode, PackageNode } = require(&apos;./gulp-nodes.js&apos;);
+const { TaskNode, PackageNode } = require(&quot;./gulp-nodes.js&quot;);
 
 const parser_options = {
   ecmaVersion: 8,
-  sourceType: &apos;script&apos;
+  sourceType: &quot;script&quot;
 };
 
 function arrayAST(node) {
   let arr = [];
 
-  node.elements.map((literal) =&gt; {
+  node.elements.map(literal =&gt; {
     arr.push(literal.value);
   });
 
@@ -94,48 +95,50 @@ class GulpGraph extends JointGraph {
     walk.simple(initial_ast, {
       VariableDeclarator(node) {
         switch (node.init.type) {
-          case &apos;CallExpression&apos;:
+          case &quot;CallExpression&quot;:
             switch (node.init.callee.name) {
-                case &apos;require&apos;:
-                  // case like: const varName = reauire(requirement);
-                  let varName = node.id.name;
-                  let requirement = node.init.arguments[0].value;
+              case &quot;require&quot;:
+                // case like: const varName = reauire(requirement);
+                let varName = node.id.name;
+                let requirement = node.init.arguments[0].value;
 
-                  if (requirement === &apos;gulp&apos;) {
-                    // assign the gulp variable name
-                    _this.config = [ &apos;gulp_name&apos;, node.id.name ];
-                  }
+                if (requirement === &quot;gulp&quot;) {
+                  // assign the gulp variable name
+                  _this.config = [&quot;gulp_name&quot;, node.id.name];
+                }
 
-                  _this.dependencies = [varName, requirement];
+                _this.dependencies = [varName, requirement];
 
-                  let package_node = new PackageNode({ name: requirement, identifier: varName },
-                  _this.GRAPH);
+                let package_node = new PackageNode(
+                  { name: requirement, identifier: varName },
+                  _this.GRAPH
+                );
 
-                  break;
-                case null:
-                    break;
-                default:
-
+                break;
+              case null:
+                break;
+              default:
             }
             break;
         }
       },
       ExpressionStatement(node) {
-
-        switch(node.expression.callee.object.name) {
+        switch (node.expression.callee.object.name) {
           case _this.config.gulp_name:
             // some sort of gulp funtion is being called
             // console.log(node.expression.callee);
-            switch(node.expression.callee.property.name) {
-              case &apos;task&apos;:
+            switch (node.expression.callee.property.name) {
+              case &quot;task&quot;:
                 // a gulp task is being called
                 let task_args = node.expression.arguments;
                 let task_name = task_args[0].value;
 
                 // test for dependencies
-                let has_dependencies = task_args[1].type === &apos;ArrayExpression&apos;;
+                let has_dependencies = task_args[1].type === &quot;ArrayExpression&quot;;
 
-                let task_dependencies = has_dependencies ? arrayAST(task_args[1]) : [];
+                let task_dependencies = has_dependencies
+                  ? arrayAST(task_args[1])
+                  : [];
 
                 // test for task
                 let has_task = has_dependencies ? task_args.length &gt; 2 : true;
@@ -149,13 +152,13 @@ class GulpGraph extends JointGraph {
                 _this.defineTask(task_name, task_dependencies, task_ast);
 
                 break;
-              case &apos;watch&apos;:
+              case &quot;watch&quot;:
                 // the gulp watch function is being called
                 break;
-              case &apos;src&apos;:
+              case &quot;src&quot;:
                 // the gulp src function is called on a blob!
                 break;
-              case &apos;dest&apos;:
+              case &quot;dest&quot;:
                 // the gulp dest function is being called
                 break;
             }
@@ -163,7 +166,6 @@ class GulpGraph extends JointGraph {
         }
       }
     });
-
   }
 
   /**
@@ -174,15 +176,17 @@ class GulpGraph extends JointGraph {
   */
   defineTask(task_name, task_dependencies, task_ast) {
     // initialize a new TaskNode extends GulpNode
-    let task_node = new TaskNode({
-      name: task_name,
-      task_dependencies: task_dependencies,
-    }, this.GRAPH );
+    let task_node = new TaskNode(
+      {
+        name: task_name,
+        task_dependencies: task_dependencies
+      },
+      this.GRAPH
+    );
 
     if (task_ast) {
       this.defineSubTask(task_node, task_ast);
     }
-
   }
 
   /**
@@ -196,23 +200,23 @@ class GulpGraph extends JointGraph {
 
     walk.ancestor(task_ast, {
       CallExpression(node, ancestors) {
-        switch(node.callee.type) {
-          case &apos;Identifier&apos;:
+        switch (node.callee.type) {
+          case &quot;Identifier&quot;:
             // embedded call ???
             break;
-          case &apos;MemberExpression&apos;:
+          case &quot;MemberExpression&quot;:
             // part of the chain?
-            switch(node.callee.object.type) {
-              case &apos;Identifier&apos;:
+            switch (node.callee.object.type) {
+              case &quot;Identifier&quot;:
                 // console.log(`${node.callee.object.name} ${ancestors.length}`);
-                switch(node.callee.object.name) {
+                switch (node.callee.object.name) {
                   case _this.config.gulp_name:
                     // a gulp within the task is being fired
                     // console.log(node.callee.property.name);
                     break;
                 }
                 break;
-              case &apos;CallExpression&apos;:
+              case &quot;CallExpression&quot;:
                 // console.log(`${node.callee.object.name} ${ancestors.length}`);
                 break;
             }

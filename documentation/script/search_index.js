@@ -30,6 +30,12 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
+    "./lib/node-types.js~node_types",
+    "variable/index.html#static-variable-NODE_TYPES",
+    '<span>NODE_TYPES</span> <span class="search-result-import-path">./lib/node-types.js</span>',
+    "variable"
+  ],
+  [
     "./lib/gulp-nodes.js~packagenode",
     "class/lib/gulp-nodes.js~PackageNode.html",
     '<span>PackageNode</span> <span class="search-result-import-path">./lib/gulp-nodes.js</span>',
@@ -547,13 +553,13 @@ window.esdocSearchIndex = [
   ],
   [
     "lib/interface.js~jointgraph#dependencies",
-    "class/lib/interface.js~JointGraph.html#instance-get-dependencies",
+    "class/lib/interface.js~JointGraph.html#instance-set-dependencies",
     "lib/interface.js~JointGraph#dependencies",
     "member"
   ],
   [
     "lib/interface.js~jointgraph#dependencies",
-    "class/lib/interface.js~JointGraph.html#instance-set-dependencies",
+    "class/lib/interface.js~JointGraph.html#instance-get-dependencies",
     "lib/interface.js~JointGraph#dependencies",
     "member"
   ],
@@ -568,5 +574,11 @@ window.esdocSearchIndex = [
     "class/lib/interface.js~JointGraph.html#instance-method-toJSON",
     "lib/interface.js~JointGraph#toJSON",
     "method"
+  ],
+  [
+    "lib/node-types.js",
+    "file/lib/node-types.js.html",
+    "lib/node-types.js",
+    "file"
   ]
 ];
