@@ -1,21 +1,60 @@
-// jshint esversion: 6
-const acorn = require("acorn");
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">lib/gulp-graph.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
 
-const walk = require("acorn/dist/walk");
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
 
-const { JointGraph } = require('./interface.js');
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  </ul>
+</div>
+</nav>
 
-const { TaskNode, PackageNode } = require('./gulp-nodes.js');
+<div class="content" data-ice="content"><h1 data-ice="title">lib/gulp-graph.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">// jshint esversion: 6
+const acorn = require(&quot;acorn&quot;);
+
+const walk = require(&quot;acorn/dist/walk&quot;);
+
+const { JointGraph } = require(&apos;./interface.js&apos;);
+
+const { TaskNode, PackageNode } = require(&apos;./gulp-nodes.js&apos;);
 
 const parser_options = {
   ecmaVersion: 8,
-  sourceType: 'script'
+  sourceType: &apos;script&apos;
 };
 
 function arrayAST(node) {
   let arr = [];
 
-  node.elements.map((literal) => {
+  node.elements.map((literal) =&gt; {
     arr.push(literal.value);
   });
 
@@ -48,16 +87,16 @@ class GulpGraph extends JointGraph {
     walk.simple(initial_ast, {
       VariableDeclarator(node) {
         switch (node.init.type) {
-          case 'CallExpression':
+          case &apos;CallExpression&apos;:
             switch (node.init.callee.name) {
-                case 'require':
+                case &apos;require&apos;:
                   // case like: const varName = reauire(requirement);
                   let varName = node.id.name;
                   let requirement = node.init.arguments[0].value;
 
-                  if (requirement === 'gulp') {
+                  if (requirement === &apos;gulp&apos;) {
                     // assign the gulp variable name
-                    _this.config = [ 'gulp_name', node.id.name ];
+                    _this.config = [ &apos;gulp_name&apos;, node.id.name ];
                   }
 
                   _this.dependencies = [varName, requirement];
@@ -81,18 +120,18 @@ class GulpGraph extends JointGraph {
             // some sort of gulp funtion is being called
             // console.log(node.expression.callee);
             switch(node.expression.callee.property.name) {
-              case 'task':
+              case &apos;task&apos;:
                 // a gulp task is being called
                 let task_args = node.expression.arguments;
                 let task_name = task_args[0].value;
 
                 // test for dependencies
-                let has_dependencies = task_args[1].type === 'ArrayExpression';
+                let has_dependencies = task_args[1].type === &apos;ArrayExpression&apos;;
 
                 let task_dependencies = has_dependencies ? arrayAST(task_args[1]) : [];
 
                 // test for task
-                let has_task = has_dependencies ? task_args.length > 2 : true;
+                let has_task = has_dependencies ? task_args.length &gt; 2 : true;
 
                 let task_ast = null;
 
@@ -103,13 +142,13 @@ class GulpGraph extends JointGraph {
                 _this.defineTask(task_name, task_dependencies, task_ast);
 
                 break;
-              case 'watch':
+              case &apos;watch&apos;:
                 // the gulp watch function is being called
                 break;
-              case 'src':
+              case &apos;src&apos;:
                 // the gulp src function is called on a blob!
                 break;
-              case 'dest':
+              case &apos;dest&apos;:
                 // the gulp dest function is being called
                 break;
             }
@@ -123,8 +162,8 @@ class GulpGraph extends JointGraph {
   /**
   * Function to initially define a task when reading from JavaScript string
   * @param {string} task_name - the name of the task to define
-  * @param {Array} task_dependencies - list of task's dependent tasks
-  * @param {Acorn AST} task_ast - tree of the task's function, if it calls one, else null
+  * @param {Array} task_dependencies - list of task&apos;s dependent tasks
+  * @param {Acorn AST} task_ast - tree of the task&apos;s function, if it calls one, else null
   */
   defineTask(task_name, task_dependencies, task_ast) {
     // initialize a new TaskNode extends GulpNode
@@ -140,7 +179,7 @@ class GulpGraph extends JointGraph {
   }
 
   /**
-  * TODO: Function that assembles the graph of the gulp task's sub routines
+  * TODO: Function that assembles the graph of the gulp task&apos;s sub routines
   * @param {TaskNode} parent - the gulp task that the subroutine belongs to
   * @param {Acorn AST} task_ast - the tree of subroutines
   */
@@ -151,13 +190,13 @@ class GulpGraph extends JointGraph {
     walk.ancestor(task_ast, {
       CallExpression(node, ancestors) {
         switch(node.callee.type) {
-          case 'Identifier':
+          case &apos;Identifier&apos;:
             // embedded call ???
             break;
-          case 'MemberExpression':
+          case &apos;MemberExpression&apos;:
             // part of the chain?
             switch(node.callee.object.type) {
-              case 'Identifier':
+              case &apos;Identifier&apos;:
                 // console.log(`${node.callee.object.name} ${ancestors.length}`);
                 switch(node.callee.object.name) {
                   case _this.config.gulp_name:
@@ -166,14 +205,14 @@ class GulpGraph extends JointGraph {
                     break;
                 }
                 break;
-              case 'CallExpression':
+              case &apos;CallExpression&apos;:
                 // console.log(`${node.callee.object.name} ${ancestors.length}`);
                 break;
             }
             break;
         }
 
-        // console.log(node.start + ' ' + node.end);
+        // console.log(node.start + &apos; &apos; + node.end);
       }
     });
   }
@@ -185,3 +224,20 @@ class GulpGraph extends JointGraph {
 }
 
 module.exports = GulpGraph;
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
