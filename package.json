@@ -1,4 +1,10 @@
 {
+  "name": "gulp-grapher-core",
+  "version": "0.0.1",
+  "description": "core logic for a gulp graph interface Edit",
+  "keywords": ["gulp", "gulpjs", "graph", "graphlib"],
+  "author": "kmannislands",
+  "license": "MIT",
   "scripts": {
     "precommit": "lint-staged"
   },
