@@ -1,6 +1,41 @@
 {
-  "coverage": "0%",
-  "expectCount": 0,
-  "actualCount": 0,
-  "files": {}
+  "coverage": "56.75%",
+  "expectCount": 37,
+  "actualCount": 21,
+  "files": {
+    "lib/interface.js": {
+      "expectCount": 20,
+      "actualCount": 10,
+      "undocumentLines": [
+        50,
+        47,
+        38,
+        44,
+        118,
+        119,
+        65,
+        69,
+        131,
+        135
+      ]
+    },
+    "lib/gulp-graph.js": {
+      "expectCount": 6,
+      "actualCount": 5,
+      "undocumentLines": [
+        6
+      ]
+    },
+    "lib/gulp-nodes.js": {
+      "expectCount": 11,
+      "actualCount": 6,
+      "undocumentLines": [
+        2,
+        60,
+        23,
+        22,
+        58
+      ]
+    }
+  }
 }

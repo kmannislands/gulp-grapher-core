@@ -1,5 +1,47 @@
 window.esdocSearchIndex = [
   [
+    "./lib/gulp-graph.js~gulpgraph",
+    "class/lib/gulp-graph.js~GulpGraph.html",
+    '<span>GulpGraph</span> <span class="search-result-import-path">./lib/gulp-graph.js</span>',
+    "class"
+  ],
+  [
+    "./lib/gulp-nodes.js~gulpnode",
+    "variable/index.html#static-variable-GulpNode",
+    '<span>GulpNode</span> <span class="search-result-import-path">./lib/gulp-nodes.js</span>',
+    "variable"
+  ],
+  [
+    "./lib/interface.js~gulpnode",
+    "class/lib/interface.js~GulpNode.html",
+    '<span>GulpNode</span> <span class="search-result-import-path">./lib/interface.js</span>',
+    "class"
+  ],
+  [
+    "./lib/gulp-graph.js~jointgraph",
+    "variable/index.html#static-variable-JointGraph",
+    '<span>JointGraph</span> <span class="search-result-import-path">./lib/gulp-graph.js</span>',
+    "variable"
+  ],
+  [
+    "./lib/interface.js~jointgraph",
+    "class/lib/interface.js~JointGraph.html",
+    '<span>JointGraph</span> <span class="search-result-import-path">./lib/interface.js</span>',
+    "class"
+  ],
+  [
+    "./lib/gulp-nodes.js~packagenode",
+    "class/lib/gulp-nodes.js~PackageNode.html",
+    '<span>PackageNode</span> <span class="search-result-import-path">./lib/gulp-nodes.js</span>',
+    "class"
+  ],
+  [
+    "./lib/gulp-nodes.js~tasknode",
+    "class/lib/gulp-nodes.js~TaskNode.html",
+    '<span>TaskNode</span> <span class="search-result-import-path">./lib/gulp-nodes.js</span>',
+    "class"
+  ],
+  [
     "builtinexternal/ecmascriptexternal.js~array",
     "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
     "BuiltinExternal/ECMAScriptExternal.js~Array",
@@ -336,15 +378,195 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
+    "lib/gulp-graph.js~gulpgraph#assemblegraph",
+    "class/lib/gulp-graph.js~GulpGraph.html#instance-method-assemblegraph",
+    "lib/gulp-graph.js~GulpGraph#assemblegraph",
+    "method"
+  ],
+  [
+    "lib/gulp-graph.js~gulpgraph#constructor",
+    "class/lib/gulp-graph.js~GulpGraph.html#instance-constructor-constructor",
+    "lib/gulp-graph.js~GulpGraph#constructor",
+    "method"
+  ],
+  [
+    "lib/gulp-graph.js~gulpgraph#definesubtask",
+    "class/lib/gulp-graph.js~GulpGraph.html#instance-method-defineSubTask",
+    "lib/gulp-graph.js~GulpGraph#defineSubTask",
+    "method"
+  ],
+  [
+    "lib/gulp-graph.js~gulpgraph#definetask",
+    "class/lib/gulp-graph.js~GulpGraph.html#instance-method-defineTask",
+    "lib/gulp-graph.js~GulpGraph#defineTask",
+    "method"
+  ],
+  [
     "lib/gulp-nodes.js",
     "file/lib/gulp-nodes.js.html",
     "lib/gulp-nodes.js",
     "file"
   ],
   [
+    "lib/gulp-nodes.js~packagenode#identifier",
+    "class/lib/gulp-nodes.js~PackageNode.html#instance-member-IDENTIFIER",
+    "lib/gulp-nodes.js~PackageNode#IDENTIFIER",
+    "member"
+  ],
+  [
+    "lib/gulp-nodes.js~packagenode#type",
+    "class/lib/gulp-nodes.js~PackageNode.html#instance-member-TYPE",
+    "lib/gulp-nodes.js~PackageNode#TYPE",
+    "member"
+  ],
+  [
+    "lib/gulp-nodes.js~packagenode#constructor",
+    "class/lib/gulp-nodes.js~PackageNode.html#instance-constructor-constructor",
+    "lib/gulp-nodes.js~PackageNode#constructor",
+    "method"
+  ],
+  [
+    "lib/gulp-nodes.js~packagenode#identifier",
+    "class/lib/gulp-nodes.js~PackageNode.html#instance-get-identifier",
+    "lib/gulp-nodes.js~PackageNode#identifier",
+    "member"
+  ],
+  [
+    "lib/gulp-nodes.js~tasknode#task_dependencies",
+    "class/lib/gulp-nodes.js~TaskNode.html#instance-member-TASK_DEPENDENCIES",
+    "lib/gulp-nodes.js~TaskNode#TASK_DEPENDENCIES",
+    "member"
+  ],
+  [
+    "lib/gulp-nodes.js~tasknode#type",
+    "class/lib/gulp-nodes.js~TaskNode.html#instance-member-TYPE",
+    "lib/gulp-nodes.js~TaskNode#TYPE",
+    "member"
+  ],
+  [
+    "lib/gulp-nodes.js~tasknode#constructor",
+    "class/lib/gulp-nodes.js~TaskNode.html#instance-constructor-constructor",
+    "lib/gulp-nodes.js~TaskNode#constructor",
+    "method"
+  ],
+  [
+    "lib/gulp-nodes.js~tasknode#linkdependencies",
+    "class/lib/gulp-nodes.js~TaskNode.html#instance-method-linkDependencies",
+    "lib/gulp-nodes.js~TaskNode#linkDependencies",
+    "method"
+  ],
+  [
     "lib/interface.js",
     "file/lib/interface.js.html",
     "lib/interface.js",
     "file"
+  ],
+  [
+    "lib/interface.js~gulpnode#name",
+    "class/lib/interface.js~GulpNode.html#instance-member-NAME",
+    "lib/interface.js~GulpNode#NAME",
+    "member"
+  ],
+  [
+    "lib/interface.js~gulpnode#type",
+    "class/lib/interface.js~GulpNode.html#instance-member-TYPE",
+    "lib/interface.js~GulpNode#TYPE",
+    "member"
+  ],
+  [
+    "lib/interface.js~gulpnode#addself",
+    "class/lib/interface.js~GulpNode.html#instance-method-addSelf",
+    "lib/interface.js~GulpNode#addSelf",
+    "method"
+  ],
+  [
+    "lib/interface.js~gulpnode#constructor",
+    "class/lib/interface.js~GulpNode.html#instance-constructor-constructor",
+    "lib/interface.js~GulpNode#constructor",
+    "method"
+  ],
+  [
+    "lib/interface.js~gulpnode#label",
+    "class/lib/interface.js~GulpNode.html#instance-get-label",
+    "lib/interface.js~GulpNode#label",
+    "member"
+  ],
+  [
+    "lib/interface.js~gulpnode#name",
+    "class/lib/interface.js~GulpNode.html#instance-get-name",
+    "lib/interface.js~GulpNode#name",
+    "member"
+  ],
+  [
+    "lib/interface.js~gulpnode#type",
+    "class/lib/interface.js~GulpNode.html#instance-get-type",
+    "lib/interface.js~GulpNode#type",
+    "member"
+  ],
+  [
+    "lib/interface.js~jointgraph#config",
+    "class/lib/interface.js~JointGraph.html#instance-member-CONFIG",
+    "lib/interface.js~JointGraph#CONFIG",
+    "member"
+  ],
+  [
+    "lib/interface.js~jointgraph#dependencies",
+    "class/lib/interface.js~JointGraph.html#instance-member-DEPENDENCIES",
+    "lib/interface.js~JointGraph#DEPENDENCIES",
+    "member"
+  ],
+  [
+    "lib/interface.js~jointgraph#graph",
+    "class/lib/interface.js~JointGraph.html#instance-member-GRAPH",
+    "lib/interface.js~JointGraph#GRAPH",
+    "member"
+  ],
+  [
+    "lib/interface.js~jointgraph#gulp_js",
+    "class/lib/interface.js~JointGraph.html#instance-member-GULP_JS",
+    "lib/interface.js~JointGraph#GULP_JS",
+    "member"
+  ],
+  [
+    "lib/interface.js~jointgraph#config",
+    "class/lib/interface.js~JointGraph.html#instance-get-config",
+    "lib/interface.js~JointGraph#config",
+    "member"
+  ],
+  [
+    "lib/interface.js~jointgraph#config",
+    "class/lib/interface.js~JointGraph.html#instance-set-config",
+    "lib/interface.js~JointGraph#config",
+    "member"
+  ],
+  [
+    "lib/interface.js~jointgraph#constructor",
+    "class/lib/interface.js~JointGraph.html#instance-constructor-constructor",
+    "lib/interface.js~JointGraph#constructor",
+    "method"
+  ],
+  [
+    "lib/interface.js~jointgraph#dependencies",
+    "class/lib/interface.js~JointGraph.html#instance-get-dependencies",
+    "lib/interface.js~JointGraph#dependencies",
+    "member"
+  ],
+  [
+    "lib/interface.js~jointgraph#dependencies",
+    "class/lib/interface.js~JointGraph.html#instance-set-dependencies",
+    "lib/interface.js~JointGraph#dependencies",
+    "member"
+  ],
+  [
+    "lib/interface.js~jointgraph#todot",
+    "class/lib/interface.js~JointGraph.html#instance-method-toDOT",
+    "lib/interface.js~JointGraph#toDOT",
+    "method"
+  ],
+  [
+    "lib/interface.js~jointgraph#tojson",
+    "class/lib/interface.js~JointGraph.html#instance-method-toJSON",
+    "lib/interface.js~JointGraph#toJSON",
+    "method"
   ]
-]
+];

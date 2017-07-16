@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "esdoc": "^0.5.2",
+    "esdoc-node": "^1.0.2",
     "eslint": "^4.2.0",
     "eslint-config-prettier": "^2.3.0",
     "eslint-plugin-prettier": "^2.1.2",
