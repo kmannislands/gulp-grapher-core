@@ -1,0 +1,1894 @@
+[
+  {
+    "__docId__": 0,
+    "kind": "file",
+    "name": "lib/gulp-graph.js",
+    "content": "// jshint esversion: 6\nconst acorn = require(\"acorn\");\n\nconst walk = require(\"acorn/dist/walk\");\n\nconst { JointGraph } = require('./interface.js');\n\nconst { TaskNode, PackageNode } = require('./gulp-nodes.js');\n\nconst parser_options = {\n  ecmaVersion: 8,\n  sourceType: 'script'\n};\n\nfunction arrayAST(node) {\n  let arr = [];\n\n  node.elements.map((literal) => {\n    arr.push(literal.value);\n  });\n\n  return arr;\n}\n\n/**\n * The GulpGraph is the child implementation that contains the actual AST parsing\n * logic for initialization\n * @extends {JointGraph}\n */\nclass GulpGraph extends JointGraph {\n  /**\n   * @param {string} source - a JavaScript gulpfile\n   */\n  constructor(source) {\n    super(source);\n    this.assemblegraph();\n  }\n\n  /**\n  * Assembles the initial graph from the source JavaScript gulpfile\n  */\n\n  assemblegraph() {\n    let _this = this;\n\n    let initial_ast = acorn.parse(this.GULP_JS, parser_options);\n\n    walk.simple(initial_ast, {\n      VariableDeclarator(node) {\n        switch (node.init.type) {\n          case 'CallExpression':\n            switch (node.init.callee.name) {\n                case 'require':\n                  // case like: const varName = reauire(requirement);\n                  let varName = node.id.name;\n                  let requirement = node.init.arguments[0].value;\n\n                  if (requirement === 'gulp') {\n                    // assign the gulp variable name\n                    _this.config = [ 'gulp_name', node.id.name ];\n                  }\n\n                  _this.dependencies = [varName, requirement];\n\n                  let package_node = new PackageNode({ name: requirement, identifier: varName },\n                  _this.GRAPH);\n\n                  break;\n                case null:\n                    break;\n                default:\n\n            }\n            break;\n        }\n      },\n      ExpressionStatement(node) {\n\n        switch(node.expression.callee.object.name) {\n          case _this.config.gulp_name:\n            // some sort of gulp funtion is being called\n            // console.log(node.expression.callee);\n            switch(node.expression.callee.property.name) {\n              case 'task':\n                // a gulp task is being called\n                let task_args = node.expression.arguments;\n                let task_name = task_args[0].value;\n\n                // test for dependencies\n                let has_dependencies = task_args[1].type === 'ArrayExpression';\n\n                let task_dependencies = has_dependencies ? arrayAST(task_args[1]) : [];\n\n                // test for task\n                let has_task = has_dependencies ? task_args.length > 2 : true;\n\n                let task_ast = null;\n\n                if (has_task) {\n                  task_ast = has_dependencies ? task_args[2] : task_args[1];\n                }\n\n                _this.defineTask(task_name, task_dependencies, task_ast);\n\n                break;\n              case 'watch':\n                // the gulp watch function is being called\n                break;\n              case 'src':\n                // the gulp src function is called on a blob!\n                break;\n              case 'dest':\n                // the gulp dest function is being called\n                break;\n            }\n            break;\n        }\n      }\n    });\n\n  }\n\n  /**\n  * Function to initially define a task when reading from JavaScript string\n  * @param {string} task_name - the name of the task to define\n  * @param {Array} task_dependencies - list of task's dependent tasks\n  * @param {Acorn AST} task_ast - tree of the task's function, if it calls one, else null\n  */\n  defineTask(task_name, task_dependencies, task_ast) {\n    // initialize a new TaskNode extends GulpNode\n    let task_node = new TaskNode({\n      name: task_name,\n      task_dependencies: task_dependencies,\n    }, this.GRAPH );\n\n    if (task_ast) {\n      this.defineSubTask(task_node, task_ast);\n    }\n\n  }\n\n  /**\n  * TODO: Function that assembles the graph of the gulp task's sub routines\n  * @param {TaskNode} parent - the gulp task that the subroutine belongs to\n  * @param {Acorn AST} task_ast - the tree of subroutines\n  */\n\n  defineSubTask(parent, task_ast) {\n    let _this = this;\n\n    walk.ancestor(task_ast, {\n      CallExpression(node, ancestors) {\n        switch(node.callee.type) {\n          case 'Identifier':\n            // embedded call ???\n            break;\n          case 'MemberExpression':\n            // part of the chain?\n            switch(node.callee.object.type) {\n              case 'Identifier':\n                // console.log(`${node.callee.object.name} ${ancestors.length}`);\n                switch(node.callee.object.name) {\n                  case _this.config.gulp_name:\n                    // a gulp within the task is being fired\n                    // console.log(node.callee.property.name);\n                    break;\n                }\n                break;\n              case 'CallExpression':\n                // console.log(`${node.callee.object.name} ${ancestors.length}`);\n                break;\n            }\n            break;\n        }\n\n        // console.log(node.start + ' ' + node.end);\n      }\n    });\n  }\n}\n\nmodule.exports = GulpGraph;\n",
+    "static": true,
+    "longname": "lib/gulp-graph.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 1,
+    "kind": "variable",
+    "name": "acorn",
+    "memberof": "lib/gulp-graph.js",
+    "static": true,
+    "longname": "lib/gulp-graph.js~acorn",
+    "access": null,
+    "export": false,
+    "importPath": "./lib/gulp-graph.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 2,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 2,
+    "kind": "variable",
+    "name": "walk",
+    "memberof": "lib/gulp-graph.js",
+    "static": true,
+    "longname": "lib/gulp-graph.js~walk",
+    "access": null,
+    "export": false,
+    "importPath": "./lib/gulp-graph.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 4,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 3,
+    "kind": "variable",
+    "name": "JointGraph",
+    "memberof": "lib/gulp-graph.js",
+    "static": true,
+    "longname": "lib/gulp-graph.js~JointGraph",
+    "access": null,
+    "export": false,
+    "importPath": "./lib/gulp-graph.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 6,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 4,
+    "kind": "variable",
+    "name": "TaskNode",
+    "memberof": "lib/gulp-graph.js",
+    "static": true,
+    "longname": "lib/gulp-graph.js~TaskNode",
+    "access": null,
+    "export": false,
+    "importPath": "./lib/gulp-graph.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 8,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 5,
+    "kind": "variable",
+    "name": "parser_options",
+    "memberof": "lib/gulp-graph.js",
+    "static": true,
+    "longname": "lib/gulp-graph.js~parser_options",
+    "access": null,
+    "export": false,
+    "importPath": "./lib/gulp-graph.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 10,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "{\"ecmaVersion\": number, \"sourceType\": string}"
+      ]
+    }
+  },
+  {
+    "__docId__": 6,
+    "kind": "function",
+    "name": "arrayAST",
+    "memberof": "lib/gulp-graph.js",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/gulp-graph.js~arrayAST",
+    "access": null,
+    "export": false,
+    "importPath": "./lib/gulp-graph.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 15,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "node",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 7,
+    "kind": "class",
+    "name": "GulpGraph",
+    "memberof": "lib/gulp-graph.js",
+    "static": true,
+    "longname": "lib/gulp-graph.js~GulpGraph",
+    "access": null,
+    "export": true,
+    "importPath": "./lib/gulp-graph.js",
+    "importStyle": "GulpGraph",
+    "description": "The GulpGraph is the child implementation that contains the actual AST parsing\nlogic for initialization",
+    "lineNumber": 30,
+    "interface": false,
+    "extends": [
+      "JointGraph"
+    ]
+  },
+  {
+    "__docId__": 8,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "lib/gulp-graph.js~GulpGraph",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/gulp-graph.js~GulpGraph#constructor",
+    "access": null,
+    "description": "",
+    "lineNumber": 34,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "source",
+        "description": "a JavaScript gulpfile"
+      }
+    ]
+  },
+  {
+    "__docId__": 9,
+    "kind": "method",
+    "name": "assemblegraph",
+    "memberof": "lib/gulp-graph.js~GulpGraph",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/gulp-graph.js~GulpGraph#assemblegraph",
+    "access": null,
+    "description": "Assembles the initial graph from the source JavaScript gulpfile",
+    "lineNumber": 43,
+    "params": []
+  },
+  {
+    "__docId__": 10,
+    "kind": "method",
+    "name": "defineTask",
+    "memberof": "lib/gulp-graph.js~GulpGraph",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/gulp-graph.js~GulpGraph#defineTask",
+    "access": null,
+    "description": "Function to initially define a task when reading from JavaScript string",
+    "lineNumber": 129,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "task_name",
+        "description": "the name of the task to define"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "task_dependencies",
+        "description": "list of task's dependent tasks"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Acorn AST"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "task_ast",
+        "description": "tree of the task's function, if it calls one, else null"
+      }
+    ]
+  },
+  {
+    "__docId__": 11,
+    "kind": "method",
+    "name": "defineSubTask",
+    "memberof": "lib/gulp-graph.js~GulpGraph",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/gulp-graph.js~GulpGraph#defineSubTask",
+    "access": null,
+    "description": "TODO: Function that assembles the graph of the gulp task's sub routines",
+    "lineNumber": 148,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "TaskNode"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "parent",
+        "description": "the gulp task that the subroutine belongs to"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Acorn AST"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "task_ast",
+        "description": "the tree of subroutines"
+      }
+    ]
+  },
+  {
+    "__docId__": 12,
+    "kind": "file",
+    "name": "lib/gulp-nodes.js",
+    "content": "// jshint esversion: 6\nconst { GulpNode } = require('./interface');\n\nfunction makeLabel(type, name) {\n  return `${type.toLowerCase()}:${name.toLowerCase()}`;\n}\n\n/**\n* TaskNodes represent a gulp task in the GulpGraph\n* @extends {GulpNode}\n*/\nclass TaskNode extends GulpNode {\n  /**\n  * TaskNodes are constructed from an initialization object and\n  * the parent graph to link task dependencies on and add itself to.\n  * @param {Object} init - the TaskNode's initialization object\n  * @param {Array} init.task_dependencies - array of dependent tasks\n  * @param {Graph} parent_graph - the parent graph\n  */\n  constructor(init, parent_graph) {\n    super(init);\n    this.TYPE = 'Task';\n    this.TASK_DEPENDENCIES = init.task_dependencies;\n\n    this.linkDependencies(parent_graph);\n\n    this.addSelf(parent_graph);\n  }\n\n  /**\n  * function to create edges on parent graph between self and\n  * dependent tasks\n  * @param {Graph} parent_graph - the parent graph to link to TaskNodes on\n  */\n  linkDependencies(parent_graph) {\n    this.TASK_DEPENDENCIES.map((sub_task_name, i, arr) => {\n      let toLabel = makeLabel('Task', sub_task_name);\n      parent_graph.setEdge(this.label, toLabel, 'depends-on');\n    });\n  }\n}\n\n/**\n* TaskNodes represent an imported package in the GulpGraph\n* @extends {GulpNode}\n*/\n\nclass PackageNode extends GulpNode {\n  /**\n  * PackageNodes are constructed from an initialization object and\n  * the parent graph to link task dependencies on and add itself to.\n  * @param {Object} init - the PackageNode's initialization object\n  * @param {string} init.identifier - the variable name the package is assigned to\n  * @param {Graph} parent_graph - the parent graph\n  */\n  constructor(obj, graph) {\n    super(obj);\n    this.TYPE = 'Package';\n\n    this.IDENTIFIER = obj.identifier;\n\n    this.addSelf(graph);\n  }\n\n  /**\n  * exposes the PackageNode's identifier\n  */\n  get identifier() {\n    return this.IDENTIFIER;\n  }\n}\n\nmodule.exports = { TaskNode, PackageNode };\n",
+    "static": true,
+    "longname": "lib/gulp-nodes.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 13,
+    "kind": "variable",
+    "name": "GulpNode",
+    "memberof": "lib/gulp-nodes.js",
+    "static": true,
+    "longname": "lib/gulp-nodes.js~GulpNode",
+    "access": null,
+    "export": false,
+    "importPath": "./lib/gulp-nodes.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 2,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 14,
+    "kind": "function",
+    "name": "makeLabel",
+    "memberof": "lib/gulp-nodes.js",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/gulp-nodes.js~makeLabel",
+    "access": null,
+    "export": false,
+    "importPath": "./lib/gulp-nodes.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 4,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "type",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "name",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 15,
+    "kind": "class",
+    "name": "TaskNode",
+    "memberof": "lib/gulp-nodes.js",
+    "static": true,
+    "longname": "lib/gulp-nodes.js~TaskNode",
+    "access": null,
+    "export": true,
+    "importPath": "./lib/gulp-nodes.js",
+    "importStyle": "{TaskNode}",
+    "description": "TaskNodes represent a gulp task in the GulpGraph",
+    "lineNumber": 12,
+    "interface": false,
+    "extends": [
+      "GulpNode"
+    ]
+  },
+  {
+    "__docId__": 16,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "lib/gulp-nodes.js~TaskNode",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/gulp-nodes.js~TaskNode#constructor",
+    "access": null,
+    "description": "TaskNodes are constructed from an initialization object and\nthe parent graph to link task dependencies on and add itself to.",
+    "lineNumber": 20,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "init",
+        "description": "the TaskNode's initialization object"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "init.task_dependencies",
+        "description": "array of dependent tasks"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Graph"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "parent_graph",
+        "description": "the parent graph"
+      }
+    ]
+  },
+  {
+    "__docId__": 17,
+    "kind": "member",
+    "name": "TYPE",
+    "memberof": "lib/gulp-nodes.js~TaskNode",
+    "static": false,
+    "longname": "lib/gulp-nodes.js~TaskNode#TYPE",
+    "access": null,
+    "description": null,
+    "lineNumber": 22,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 18,
+    "kind": "member",
+    "name": "TASK_DEPENDENCIES",
+    "memberof": "lib/gulp-nodes.js~TaskNode",
+    "static": false,
+    "longname": "lib/gulp-nodes.js~TaskNode#TASK_DEPENDENCIES",
+    "access": null,
+    "description": null,
+    "lineNumber": 23,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 19,
+    "kind": "method",
+    "name": "linkDependencies",
+    "memberof": "lib/gulp-nodes.js~TaskNode",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/gulp-nodes.js~TaskNode#linkDependencies",
+    "access": null,
+    "description": "function to create edges on parent graph between self and\ndependent tasks",
+    "lineNumber": 35,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Graph"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "parent_graph",
+        "description": "the parent graph to link to TaskNodes on"
+      }
+    ]
+  },
+  {
+    "__docId__": 20,
+    "kind": "class",
+    "name": "PackageNode",
+    "memberof": "lib/gulp-nodes.js",
+    "static": true,
+    "longname": "lib/gulp-nodes.js~PackageNode",
+    "access": null,
+    "export": true,
+    "importPath": "./lib/gulp-nodes.js",
+    "importStyle": "{PackageNode}",
+    "description": "TaskNodes represent an imported package in the GulpGraph",
+    "lineNumber": 48,
+    "interface": false,
+    "extends": [
+      "GulpNode"
+    ]
+  },
+  {
+    "__docId__": 21,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "lib/gulp-nodes.js~PackageNode",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/gulp-nodes.js~PackageNode#constructor",
+    "access": null,
+    "description": "PackageNodes are constructed from an initialization object and\nthe parent graph to link task dependencies on and add itself to.",
+    "lineNumber": 56,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "init",
+        "description": "the PackageNode's initialization object"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "init.identifier",
+        "description": "the variable name the package is assigned to"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Graph"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "parent_graph",
+        "description": "the parent graph"
+      }
+    ]
+  },
+  {
+    "__docId__": 22,
+    "kind": "member",
+    "name": "TYPE",
+    "memberof": "lib/gulp-nodes.js~PackageNode",
+    "static": false,
+    "longname": "lib/gulp-nodes.js~PackageNode#TYPE",
+    "access": null,
+    "description": null,
+    "lineNumber": 58,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 23,
+    "kind": "member",
+    "name": "IDENTIFIER",
+    "memberof": "lib/gulp-nodes.js~PackageNode",
+    "static": false,
+    "longname": "lib/gulp-nodes.js~PackageNode#IDENTIFIER",
+    "access": null,
+    "description": null,
+    "lineNumber": 60,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 24,
+    "kind": "get",
+    "name": "identifier",
+    "memberof": "lib/gulp-nodes.js~PackageNode",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/gulp-nodes.js~PackageNode#identifier",
+    "access": null,
+    "description": "exposes the PackageNode's identifier",
+    "lineNumber": 68,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 25,
+    "kind": "file",
+    "name": "lib/interface.js",
+    "content": "// jshint esversion: 6\nconst graphlib = require(\"graphlib\"),\n  Graph = graphlib.Graph;\n\nconst dot = require('graphlib-dot');\n\n/**\n* Helper function for conveniently setting object properties with\n* key value pairs like:\n* ```javascript\n*   let pair = [ key, value ];\n*```\n* @param {Object} property - the the object to assign the pair on\n* @param {Array} pair - the key value pair\n*/\n\nfunction setPair(property, pair) {\n  let key = pair[0];\n  let value = pair[1];\n\n  property[key] = value;\n}\n\n/**\n * the JointGraph interface is intended as an abstract class for\n * the GulpGraph to inherit\n * @interface\n */\n\nclass JointGraph {\n  /**\n   * The JointGraph wraps a graphlib object, a js string,\n   * a dependencies array, and a config object\n   * @param {string} source the JavaScript gulpfile\n   */\n  constructor(source) {\n    // graphlib directed multigraph interface\n    this.GRAPH = new Graph({\n      directed: true,\n      multigraph: false,\n      compound: true\n    });\n\n    this.GULP_JS = source;\n\n    // package dependencies\n    this.DEPENDENCIES = [];\n\n    // private config object\n    this.CONFIG = {};\n  }\n\n  /**\n  * Set a graph config variable for the whole gulpgraph from an array pair\n  * like:\n  * ```javascript\n  *   let pair = [ key, value ];\n  *```\n  * @param {Array} pair - key value pairing\n  */\n  set config(pair) {\n    setPair(this.CONFIG, pair);\n  }\n\n  get config() {\n    return this.CONFIG;\n  }\n\n  get dependencies() {\n    return this.DEPENDENCIES;\n  }\n\n  /**\n  * Set a graph dependency for the whole gulpgraph from an array pair\n  * like:\n  * ```javascript\n  *   let pair = [ key, value ];\n  *```\n  * @param {Array} pair - key value pairing\n  */\n  set dependencies(pair) {\n    setPair(this.DEPENDENCIES, pair);\n  }\n\n  /**\n  * Represents the current GulpGraph as Json\n  * @return {Object} The GulpGraph's full JSON representaion\n  */\n  toJSON() {\n    return graphlib.json.write(this.GRAPH);\n  }\n\n  /**\n  * Represents the current GulpGraph using the DOT plain-text\n  * graph description language\n  * @return {String} The GulpGraph's full .dot representaion\n  */\n  toDOT() {\n    return dot.write(this.GRAPH);\n  }\n}\n\n/**\n * the GulpNode interface is intended as an abstract class for\n * the GulpGraph Nodes to inherit\n * @interface\n */\n\nclass GulpNode {\n  /**\n * The GulpNode is constructed from an object, allowing its child classes\n * to have different initialization properties. Requires a name, defaults\n * type to 'GulpNode'\n * @param {Object} init - this is object param.\n * @param {number} param.name - name (required)\n */\n  constructor(init) {\n    this.NAME = obj.name;\n    this.TYPE = 'GulpNode';\n  }\n\n  /**\n  * used by some children classes to add themselves to the JointGraph.GRAPH\n  * at the end of initialization.\n  * @param {Graph} graph - the parent graph for the node to add itself to\n  */\n  addSelf(graph) {\n    graph.setNode(this.label, this);\n  }\n\n  get name() {\n    return this.NAME;\n  }\n\n  get type() {\n    return this.TYPE;\n  }\n\n  /**\n  * Static getter for the label, which is of the form:\n  * ```javascript\n  * type.toLowerCase() + ':' + name.toLowerCase\n  *```\n  */\n  get label() {\n    return `${this.type.toLowerCase()}:${this.name.toLowerCase()}`;\n  }\n\n}\n\nmodule.exports = { GulpNode, JointGraph };\n",
+    "static": true,
+    "longname": "lib/interface.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 26,
+    "kind": "variable",
+    "name": "graphlib",
+    "memberof": "lib/interface.js",
+    "static": true,
+    "longname": "lib/interface.js~graphlib",
+    "access": null,
+    "export": false,
+    "importPath": "./lib/interface.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 2,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 27,
+    "kind": "variable",
+    "name": "dot",
+    "memberof": "lib/interface.js",
+    "static": true,
+    "longname": "lib/interface.js~dot",
+    "access": null,
+    "export": false,
+    "importPath": "./lib/interface.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 5,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 28,
+    "kind": "function",
+    "name": "setPair",
+    "memberof": "lib/interface.js",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/interface.js~setPair",
+    "access": null,
+    "export": false,
+    "importPath": "./lib/interface.js",
+    "importStyle": null,
+    "description": "Helper function for conveniently setting object properties with\nkey value pairs like:\n```javascript\n  let pair = [ key, value ];\n```",
+    "lineNumber": 17,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "property",
+        "description": "the the object to assign the pair on"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "pair",
+        "description": "the key value pair"
+      }
+    ]
+  },
+  {
+    "__docId__": 29,
+    "kind": "class",
+    "name": "GulpNode",
+    "memberof": "lib/interface.js",
+    "static": true,
+    "longname": "lib/interface.js~GulpNode",
+    "access": null,
+    "export": true,
+    "importPath": "./lib/interface.js",
+    "importStyle": "{GulpNode}",
+    "description": "the GulpNode interface is intended as an abstract class for\nthe GulpGraph Nodes to inherit",
+    "lineNumber": 109,
+    "interface": true
+  },
+  {
+    "__docId__": 30,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "lib/interface.js~GulpNode",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/interface.js~GulpNode#constructor",
+    "access": null,
+    "description": "The GulpNode is constructed from an object, allowing its child classes\nto have different initialization properties. Requires a name, defaults\ntype to 'GulpNode'",
+    "lineNumber": 117,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "init",
+        "description": "this is object param."
+      },
+      {
+        "nullable": null,
+        "types": [
+          "number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "param.name",
+        "description": "name (required)"
+      }
+    ]
+  },
+  {
+    "__docId__": 31,
+    "kind": "member",
+    "name": "NAME",
+    "memberof": "lib/interface.js~GulpNode",
+    "static": false,
+    "longname": "lib/interface.js~GulpNode#NAME",
+    "access": null,
+    "description": null,
+    "lineNumber": 118,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 32,
+    "kind": "member",
+    "name": "TYPE",
+    "memberof": "lib/interface.js~GulpNode",
+    "static": false,
+    "longname": "lib/interface.js~GulpNode#TYPE",
+    "access": null,
+    "description": null,
+    "lineNumber": 119,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 33,
+    "kind": "method",
+    "name": "addSelf",
+    "memberof": "lib/interface.js~GulpNode",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/interface.js~GulpNode#addSelf",
+    "access": null,
+    "description": "used by some children classes to add themselves to the JointGraph.GRAPH\nat the end of initialization.",
+    "lineNumber": 127,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Graph"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "graph",
+        "description": "the parent graph for the node to add itself to"
+      }
+    ]
+  },
+  {
+    "__docId__": 34,
+    "kind": "get",
+    "name": "name",
+    "memberof": "lib/interface.js~GulpNode",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/interface.js~GulpNode#name",
+    "access": null,
+    "description": null,
+    "lineNumber": 131,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 35,
+    "kind": "get",
+    "name": "type",
+    "memberof": "lib/interface.js~GulpNode",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/interface.js~GulpNode#type",
+    "access": null,
+    "description": null,
+    "lineNumber": 135,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 36,
+    "kind": "get",
+    "name": "label",
+    "memberof": "lib/interface.js~GulpNode",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/interface.js~GulpNode#label",
+    "access": null,
+    "description": "Static getter for the label, which is of the form:\n```javascript\ntype.toLowerCase() + ':' + name.toLowerCase\n```",
+    "lineNumber": 145,
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 37,
+    "kind": "class",
+    "name": "JointGraph",
+    "memberof": "lib/interface.js",
+    "static": true,
+    "longname": "lib/interface.js~JointGraph",
+    "access": null,
+    "export": true,
+    "importPath": "./lib/interface.js",
+    "importStyle": "{JointGraph}",
+    "description": "the JointGraph interface is intended as an abstract class for\nthe GulpGraph to inherit",
+    "lineNumber": 30,
+    "interface": true
+  },
+  {
+    "__docId__": 38,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "lib/interface.js~JointGraph",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/interface.js~JointGraph#constructor",
+    "access": null,
+    "description": "The JointGraph wraps a graphlib object, a js string,\na dependencies array, and a config object",
+    "lineNumber": 36,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "source",
+        "description": "the JavaScript gulpfile"
+      }
+    ]
+  },
+  {
+    "__docId__": 39,
+    "kind": "member",
+    "name": "GRAPH",
+    "memberof": "lib/interface.js~JointGraph",
+    "static": false,
+    "longname": "lib/interface.js~JointGraph#GRAPH",
+    "access": null,
+    "description": null,
+    "lineNumber": 38,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 40,
+    "kind": "member",
+    "name": "GULP_JS",
+    "memberof": "lib/interface.js~JointGraph",
+    "static": false,
+    "longname": "lib/interface.js~JointGraph#GULP_JS",
+    "access": null,
+    "description": null,
+    "lineNumber": 44,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 41,
+    "kind": "member",
+    "name": "DEPENDENCIES",
+    "memberof": "lib/interface.js~JointGraph",
+    "static": false,
+    "longname": "lib/interface.js~JointGraph#DEPENDENCIES",
+    "access": null,
+    "description": null,
+    "lineNumber": 47,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*[]"
+      ]
+    }
+  },
+  {
+    "__docId__": 42,
+    "kind": "member",
+    "name": "CONFIG",
+    "memberof": "lib/interface.js~JointGraph",
+    "static": false,
+    "longname": "lib/interface.js~JointGraph#CONFIG",
+    "access": null,
+    "description": null,
+    "lineNumber": 50,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "{}"
+      ]
+    }
+  },
+  {
+    "__docId__": 43,
+    "kind": "set",
+    "name": "config",
+    "memberof": "lib/interface.js~JointGraph",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/interface.js~JointGraph#config",
+    "access": null,
+    "description": "Set a graph config variable for the whole gulpgraph from an array pair\nlike:\n```javascript\n  let pair = [ key, value ];\n```",
+    "lineNumber": 61,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "pair",
+        "description": "key value pairing"
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 44,
+    "kind": "get",
+    "name": "config",
+    "memberof": "lib/interface.js~JointGraph",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/interface.js~JointGraph#config",
+    "access": null,
+    "description": null,
+    "lineNumber": 65,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 45,
+    "kind": "get",
+    "name": "dependencies",
+    "memberof": "lib/interface.js~JointGraph",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/interface.js~JointGraph#dependencies",
+    "access": null,
+    "description": null,
+    "lineNumber": 69,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 46,
+    "kind": "set",
+    "name": "dependencies",
+    "memberof": "lib/interface.js~JointGraph",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/interface.js~JointGraph#dependencies",
+    "access": null,
+    "description": "Set a graph dependency for the whole gulpgraph from an array pair\nlike:\n```javascript\n  let pair = [ key, value ];\n```",
+    "lineNumber": 81,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "pair",
+        "description": "key value pairing"
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 47,
+    "kind": "method",
+    "name": "toJSON",
+    "memberof": "lib/interface.js~JointGraph",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/interface.js~JointGraph#toJSON",
+    "access": null,
+    "description": "Represents the current GulpGraph as Json",
+    "lineNumber": 89,
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Object"
+      ],
+      "spread": false,
+      "description": "The GulpGraph's full JSON representaion"
+    }
+  },
+  {
+    "__docId__": 48,
+    "kind": "method",
+    "name": "toDOT",
+    "memberof": "lib/interface.js~JointGraph",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/interface.js~JointGraph#toDOT",
+    "access": null,
+    "description": "Represents the current GulpGraph using the DOT plain-text\ngraph description language",
+    "lineNumber": 98,
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "String"
+      ],
+      "spread": false,
+      "description": "The GulpGraph's full .dot representaion"
+    }
+  },
+  {
+    "__docId__": 50,
+    "kind": "external",
+    "name": "Infinity",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Infinity",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 51,
+    "kind": "external",
+    "name": "NaN",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~NaN",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 52,
+    "kind": "external",
+    "name": "undefined",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~undefined",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 53,
+    "kind": "external",
+    "name": "null",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~null",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 54,
+    "kind": "external",
+    "name": "Object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 55,
+    "kind": "external",
+    "name": "object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 56,
+    "kind": "external",
+    "name": "Function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 57,
+    "kind": "external",
+    "name": "function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 58,
+    "kind": "external",
+    "name": "Boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 59,
+    "kind": "external",
+    "name": "boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 60,
+    "kind": "external",
+    "name": "Symbol",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Symbol",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 61,
+    "kind": "external",
+    "name": "Error",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Error",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 62,
+    "kind": "external",
+    "name": "EvalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~EvalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 63,
+    "kind": "external",
+    "name": "InternalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~InternalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 64,
+    "kind": "external",
+    "name": "RangeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RangeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 65,
+    "kind": "external",
+    "name": "ReferenceError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ReferenceError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 66,
+    "kind": "external",
+    "name": "SyntaxError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~SyntaxError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 67,
+    "kind": "external",
+    "name": "TypeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~TypeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 68,
+    "kind": "external",
+    "name": "URIError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~URIError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 69,
+    "kind": "external",
+    "name": "Number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 70,
+    "kind": "external",
+    "name": "number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 71,
+    "kind": "external",
+    "name": "Date",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Date",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 72,
+    "kind": "external",
+    "name": "String",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~String",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 73,
+    "kind": "external",
+    "name": "string",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~string",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 74,
+    "kind": "external",
+    "name": "RegExp",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RegExp",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 75,
+    "kind": "external",
+    "name": "Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 76,
+    "kind": "external",
+    "name": "Int8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 77,
+    "kind": "external",
+    "name": "Uint8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 78,
+    "kind": "external",
+    "name": "Uint8ClampedArray",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8ClampedArray",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 79,
+    "kind": "external",
+    "name": "Int16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 80,
+    "kind": "external",
+    "name": "Uint16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 81,
+    "kind": "external",
+    "name": "Int32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 82,
+    "kind": "external",
+    "name": "Uint32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 83,
+    "kind": "external",
+    "name": "Float32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 84,
+    "kind": "external",
+    "name": "Float64Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float64Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 85,
+    "kind": "external",
+    "name": "Map",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Map",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 86,
+    "kind": "external",
+    "name": "Set",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Set",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 87,
+    "kind": "external",
+    "name": "WeakMap",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakMap",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 88,
+    "kind": "external",
+    "name": "WeakSet",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakSet",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 89,
+    "kind": "external",
+    "name": "ArrayBuffer",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ArrayBuffer",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 90,
+    "kind": "external",
+    "name": "DataView",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~DataView",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 91,
+    "kind": "external",
+    "name": "JSON",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~JSON",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 92,
+    "kind": "external",
+    "name": "Promise",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Promise",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 93,
+    "kind": "external",
+    "name": "Generator",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Generator",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 94,
+    "kind": "external",
+    "name": "GeneratorFunction",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~GeneratorFunction",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 95,
+    "kind": "external",
+    "name": "Reflect",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Reflect",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 96,
+    "kind": "external",
+    "name": "Proxy",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Proxy",
+    "access": null,
+    "description": "",
+    "lineNumber": 193,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 98,
+    "kind": "external",
+    "name": "CanvasRenderingContext2D",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~CanvasRenderingContext2D",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 99,
+    "kind": "external",
+    "name": "DocumentFragment",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~DocumentFragment",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 100,
+    "kind": "external",
+    "name": "Element",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Element",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~Element",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 101,
+    "kind": "external",
+    "name": "Event",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Event",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~Event",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 102,
+    "kind": "external",
+    "name": "Node",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Node",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~Node",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 103,
+    "kind": "external",
+    "name": "NodeList",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/NodeList",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~NodeList",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 104,
+    "kind": "external",
+    "name": "XMLHttpRequest",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~XMLHttpRequest",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 105,
+    "kind": "external",
+    "name": "AudioContext",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/AudioContext",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~AudioContext",
+    "access": null,
+    "description": "",
+    "lineNumber": 34,
+    "builtinExternal": true
+  }
+]

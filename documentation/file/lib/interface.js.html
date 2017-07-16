@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">lib/interface.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/gulp-graph.js~GulpGraph.html">GulpGraph</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/gulp-nodes.js~PackageNode.html">PackageNode</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/gulp-nodes.js~TaskNode.html">TaskNode</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-interface">I</span><span data-ice="name"><span><a href="class/lib/interface.js~GulpNode.html">GulpNode</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-interface">I</span><span data-ice="name"><span><a href="class/lib/interface.js~JointGraph.html">JointGraph</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-JointGraph">JointGraph</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GulpNode">GulpNode</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">lib/interface.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">// jshint esversion: 6
+const graphlib = require(&quot;graphlib&quot;),
+  Graph = graphlib.Graph;
+
+const dot = require(&apos;graphlib-dot&apos;);
+
+/**
+* Helper function for conveniently setting object properties with
+* key value pairs like:
+* ```javascript
+*   let pair = [ key, value ];
+*```
+* @param {Object} property - the the object to assign the pair on
+* @param {Array} pair - the key value pair
+*/
+
+function setPair(property, pair) {
+  let key = pair[0];
+  let value = pair[1];
+
+  property[key] = value;
+}
+
+/**
+ * the JointGraph interface is intended as an abstract class for
+ * the GulpGraph to inherit
+ * @interface
+ */
+
+class JointGraph {
+  /**
+   * The JointGraph wraps a graphlib object, a js string,
+   * a dependencies array, and a config object
+   * @param {string} source the JavaScript gulpfile
+   */
+  constructor(source) {
+    // graphlib directed multigraph interface
+    this.GRAPH = new Graph({
+      directed: true,
+      multigraph: false,
+      compound: true
+    });
+
+    this.GULP_JS = source;
+
+    // package dependencies
+    this.DEPENDENCIES = [];
+
+    //&#xA0;private config object
+    this.CONFIG = {};
+  }
+
+  /**
+  * Set a graph config variable for the whole gulpgraph from an array pair
+  * like:
+  * ```javascript
+  *   let pair = [ key, value ];
+  *```
+  * @param {Array} pair - key value pairing
+  */
+  set config(pair) {
+    setPair(this.CONFIG, pair);
+  }
+
+  get config() {
+    return this.CONFIG;
+  }
+
+  get dependencies() {
+    return this.DEPENDENCIES;
+  }
+
+  /**
+  * Set a graph dependency for the whole gulpgraph from an array pair
+  * like:
+  * ```javascript
+  *   let pair = [ key, value ];
+  *```
+  * @param {Array} pair - key value pairing
+  */
+  set dependencies(pair) {
+    setPair(this.DEPENDENCIES, pair);
+  }
+
+  /**
+  * Represents the current GulpGraph as Json
+  * @return {Object} The GulpGraph&apos;s full JSON representaion
+  */
+  toJSON() {
+    return graphlib.json.write(this.GRAPH);
+  }
+
+  /**
+  * Represents the current GulpGraph using the DOT plain-text
+  * graph description language
+  * @return {String} The GulpGraph&apos;s full .dot representaion
+  */
+  toDOT() {
+    return dot.write(this.GRAPH);
+  }
+}
+
+/**
+ * the GulpNode interface is intended as an abstract class for
+ * the GulpGraph Nodes to inherit
+ * @interface
+ */
+
+class GulpNode {
+  /**
+ * The GulpNode is constructed from an object, allowing its child classes
+ * to have different initialization properties. Requires a name, defaults
+ * type to &apos;GulpNode&apos;
+ * @param {Object} init - this is object param.
+ * @param {number} param.name - name (required)
+ */
+  constructor(init) {
+    this.NAME = obj.name;
+    this.TYPE = &apos;GulpNode&apos;;
+  }
+
+  /**
+  * used by some children classes to add themselves to the JointGraph.GRAPH
+  * at the end of initialization.
+  * @param {Graph} graph - the parent graph for the node to add itself to
+  */
+  addSelf(graph) {
+    graph.setNode(this.label, this);
+  }
+
+  get name() {
+    return this.NAME;
+  }
+
+  get type() {
+    return this.TYPE;
+  }
+
+  /**
+  * Static getter for the label, which is of the form:
+  * ```javascript
+  * type.toLowerCase() + &apos;:&apos; + name.toLowerCase
+  *```
+  */
+  get label() {
+    return `${this.type.toLowerCase()}:${this.name.toLowerCase()}`;
+  }
+
+}
+
+module.exports = { GulpNode, JointGraph };
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

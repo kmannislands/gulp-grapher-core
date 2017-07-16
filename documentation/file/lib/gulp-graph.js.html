@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">lib/gulp-graph.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/gulp-graph.js~GulpGraph.html">GulpGraph</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/gulp-nodes.js~PackageNode.html">PackageNode</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/gulp-nodes.js~TaskNode.html">TaskNode</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-interface">I</span><span data-ice="name"><span><a href="class/lib/interface.js~GulpNode.html">GulpNode</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-interface">I</span><span data-ice="name"><span><a href="class/lib/interface.js~JointGraph.html">JointGraph</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-JointGraph">JointGraph</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GulpNode">GulpNode</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">lib/gulp-graph.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">// jshint esversion: 6
+const acorn = require(&quot;acorn&quot;);
+
+const walk = require(&quot;acorn/dist/walk&quot;);
+
+const { JointGraph } = require(&apos;./interface.js&apos;);
+
+const { TaskNode, PackageNode } = require(&apos;./gulp-nodes.js&apos;);
+
+const parser_options = {
+  ecmaVersion: 8,
+  sourceType: &apos;script&apos;
+};
+
+function arrayAST(node) {
+  let arr = [];
+
+  node.elements.map((literal) =&gt; {
+    arr.push(literal.value);
+  });
+
+  return arr;
+}
+
+/**
+ * The GulpGraph is the child implementation that contains the actual AST parsing
+ * logic for initialization
+ * @extends {JointGraph}
+ */
+class GulpGraph extends JointGraph {
+  /**
+   * @param {string} source - a JavaScript gulpfile
+   */
+  constructor(source) {
+    super(source);
+    this.assemblegraph();
+  }
+
+  /**
+  * Assembles the initial graph from the source JavaScript gulpfile
+  */
+
+  assemblegraph() {
+    let _this = this;
+
+    let initial_ast = acorn.parse(this.GULP_JS, parser_options);
+
+    walk.simple(initial_ast, {
+      VariableDeclarator(node) {
+        switch (node.init.type) {
+          case &apos;CallExpression&apos;:
+            switch (node.init.callee.name) {
+                case &apos;require&apos;:
+                  // case like: const varName = reauire(requirement);
+                  let varName = node.id.name;
+                  let requirement = node.init.arguments[0].value;
+
+                  if (requirement === &apos;gulp&apos;) {
+                    // assign the gulp variable name
+                    _this.config = [ &apos;gulp_name&apos;, node.id.name ];
+                  }
+
+                  _this.dependencies = [varName, requirement];
+
+                  let package_node = new PackageNode({ name: requirement, identifier: varName },
+                  _this.GRAPH);
+
+                  break;
+                case null:
+                    break;
+                default:
+
+            }
+            break;
+        }
+      },
+      ExpressionStatement(node) {
+
+        switch(node.expression.callee.object.name) {
+          case _this.config.gulp_name:
+            // some sort of gulp funtion is being called
+            // console.log(node.expression.callee);
+            switch(node.expression.callee.property.name) {
+              case &apos;task&apos;:
+                // a gulp task is being called
+                let task_args = node.expression.arguments;
+                let task_name = task_args[0].value;
+
+                // test for dependencies
+                let has_dependencies = task_args[1].type === &apos;ArrayExpression&apos;;
+
+                let task_dependencies = has_dependencies ? arrayAST(task_args[1]) : [];
+
+                // test for task
+                let has_task = has_dependencies ? task_args.length &gt; 2 : true;
+
+                let task_ast = null;
+
+                if (has_task) {
+                  task_ast = has_dependencies ? task_args[2] : task_args[1];
+                }
+
+                _this.defineTask(task_name, task_dependencies, task_ast);
+
+                break;
+              case &apos;watch&apos;:
+                // the gulp watch function is being called
+                break;
+              case &apos;src&apos;:
+                // the gulp src function is called on a blob!
+                break;
+              case &apos;dest&apos;:
+                // the gulp dest function is being called
+                break;
+            }
+            break;
+        }
+      }
+    });
+
+  }
+
+  /**
+  * Function to initially define a task when reading from JavaScript string
+  * @param {string} task_name - the name of the task to define
+  * @param {Array} task_dependencies - list of task&apos;s dependent tasks
+  * @param {Acorn AST} task_ast - tree of the task&apos;s function, if it calls one, else null
+  */
+  defineTask(task_name, task_dependencies, task_ast) {
+    // initialize a new TaskNode extends GulpNode
+    let task_node = new TaskNode({
+      name: task_name,
+      task_dependencies: task_dependencies,
+    }, this.GRAPH );
+
+    if (task_ast) {
+      this.defineSubTask(task_node, task_ast);
+    }
+
+  }
+
+  /**
+  * TODO: Function that assembles the graph of the gulp task&apos;s sub routines
+  * @param {TaskNode} parent - the gulp task that the subroutine belongs to
+  * @param {Acorn AST} task_ast - the tree of subroutines
+  */
+
+  defineSubTask(parent, task_ast) {
+    let _this = this;
+
+    walk.ancestor(task_ast, {
+      CallExpression(node, ancestors) {
+        switch(node.callee.type) {
+          case &apos;Identifier&apos;:
+            // embedded call ???
+            break;
+          case &apos;MemberExpression&apos;:
+            // part of the chain?
+            switch(node.callee.object.type) {
+              case &apos;Identifier&apos;:
+                // console.log(`${node.callee.object.name} ${ancestors.length}`);
+                switch(node.callee.object.name) {
+                  case _this.config.gulp_name:
+                    // a gulp within the task is being fired
+                    // console.log(node.callee.property.name);
+                    break;
+                }
+                break;
+              case &apos;CallExpression&apos;:
+                // console.log(`${node.callee.object.name} ${ancestors.length}`);
+                break;
+            }
+            break;
+        }
+
+        // console.log(node.start + &apos; &apos; + node.end);
+      }
+    });
+  }
+}
+
+module.exports = GulpGraph;
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
