@@ -12,7 +12,7 @@
   "license": "MIT",
   "scripts": {
     "precommit": "lint-staged",
-    "prepublish": "node_modules/babel-cli/bin/babel.js src --out-dir lib"
+    "prepublish": "node_modules/babel-cli/bin/babel.js src --plugins remove-comments --out-dir lib"
   },
   "babel": {
     "presets": [
@@ -23,11 +23,12 @@
     "*.js": [
       "prettier --write",
       "git add",
-      "node_modules/babel-cli/bin/babel.js src --out-dir lib"
+      "node_modules/babel-cli/bin/babel.js src --plugins remove-comments --out-dir lib"
     ]
   },
   "dependencies": {
     "acorn": "^5.1.1",
+    "babel-plugin-remove-comments": "^2.0.0",
     "graphlib": "^2.1.1",
     "graphlib-dot": "^0.6.2"
   },
