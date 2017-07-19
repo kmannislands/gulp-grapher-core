@@ -25,13 +25,34 @@ Gulp Grapher Core requires [Node.js](https://nodejs.org/) v8+ to run locally.
 
 Install the dependencies and devDependencies and start hacking away.
 
+```sh
+$ yarn --dev
+```
+
 [Prettier](https://github.com/prettier/prettier) is used along with husky and lint-staged (see prettier's README) to format js locally on a commit hook.
 
 [Yarn](https://yarnpkg.com/en/docs/migrating-from-npm) is recommended for stable package management.
 
+[Babel](https://babeljs.io/) is used to compile the JavaScript for better support. Source JavaScript is kept in the src/ folder and exported to the lib/ folder on compile.
+
+Compile with:
+
 ```sh
-$ yarn
-$ node start.js
+$ yarn babel
+```
+
+[Esdoc](https://esdoc.org/) is used for auto-generated documentation locally.
+
+To create documentation:
+
+```sh
+$ esdoc
+```
+
+and then to view:
+
+```sh
+$ open ./documentation/index.html
 ```
 
 ### Todos

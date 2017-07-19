@@ -12,7 +12,8 @@
   "license": "MIT",
   "scripts": {
     "precommit": "lint-staged",
-    "prepublish": "node_modules/babel-cli/bin/babel.js src --plugins remove-comments --out-dir lib"
+    "prepublish": "node_modules/babel-cli/bin/babel.js src --plugins remove-comments --out-dir lib",
+    "babel": "node_modules/babel-cli/bin/babel.js src --plugins remove-comments --out-dir lib"
   },
   "babel": {
     "presets": [
