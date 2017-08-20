@@ -1,5 +1,4 @@
 # Gulp Grapher Core
-[![forthebadge](http://forthebadge.com/images/badges/fuck-it-ship-it.svg)](http://forthebadge.com)
 
 The Gulp Graph object creates a graph interface to interact with gulpfiles to achieve things like:
   - Retrieve a graph representation of tasks, and their dependencies
@@ -18,6 +17,41 @@ The gulp grapher core depends on two main open source dependencies:
 * [Acorn](https://github.com/ternjs/acorn) - A small, fast, JavaScript-based JavaScript parser
 * [Graphlib](https://github.com/cpettitt/graphlib) - A directed multi-graph library for JavaScript
 
+### Usage
+
+An example usage of the package with current node.js syntax can be found in start.js
+
+```JavaScript
+const { promisify } = require('util');
+const fs = require('fs');
+const readFileAsync = promisify(fs.readFile);
+
+const GulpGraph = require('./lib/gulp-graph');
+
+async function main() {
+    try {
+        const gulpfile = await readFileAsync('./test-files/gist-2.js', { encoding: 'utf8' });
+
+        const testGG = new GulpGraph(gulpfile);
+
+        // Access the graph directly
+        console.log(testGG.GRAPH.nodes());
+        console.log(testGG.GRAPH.edges());
+
+        // .dot representation of the gulp graph
+        console.log(testGG.toDOT());
+
+        // JSON representation of the gulp graph
+        console.dir(testGG.toJSON());
+    }
+    catch (err) {
+        console.log('ERROR:', err);
+    }
+}
+
+main();
+
+```
 
 ### Development
 
